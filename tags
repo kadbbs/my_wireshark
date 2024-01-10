@@ -1,0 +1,17 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+CC	Makefile	/^CC = gcc$/;"	m
+CFLAGS	Makefile	/^CFLAGS=-g -Wall$/;"	m
+INCLUDE_LIB	Makefile	/^INCLUDE_LIB =$/;"	m
+LD_LIB	Makefile	/^LD_LIB = $/;"	m
+MAX_PACKET_SIZE	main.c	15;"	d	file:
+OBJ	Makefile	/^OBJ =main.o$/;"	m
+SRC	Makefile	/^SRC = main.c$/;"	m
+main	main.c	/^int main() {$/;"	f
+parse_packet	main.c	/^void parse_packet(const unsigned char* buffer, int size) {$/;"	f
+print_ascii	main.c	/^void print_ascii(char *buf,int size){$/;"	f
+print_mac_frame_hex	main.c	/^void print_mac_frame_hex(const unsigned char* buffer, int size) {$/;"	f
