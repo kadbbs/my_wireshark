@@ -21,7 +21,8 @@ main:${OBJ}
 
 %.o:%.c
 	${CC} ${CFLAGS} -c $^ -o $@
-
+wlp4s0:
+	sudo ./main $@
 bili:
 	sudo ./main wlp4s0 47.103.24.173
 debug:

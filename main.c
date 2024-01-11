@@ -39,7 +39,7 @@ void print_ascii(char *buf,int size){
 	}
 	printf("\n**********************");
 }
-void static_ip(const unsigned char* buffer, int size,char *d_ip,int d_size){
+void static_ip(const unsigned char* buffer, int size,char *iip,int len){
 
 
 	struct iphdr* ip = (struct iphdr*)(buffer + sizeof(struct ethhdr));
@@ -47,15 +47,9 @@ void static_ip(const unsigned char* buffer, int size,char *d_ip,int d_size){
 	char dest_ip[INET_ADDRSTRLEN];
 	inet_ntop(AF_INET, &(ip->saddr), source_ip, INET_ADDRSTRLEN);
 	inet_ntop(AF_INET, &(ip->daddr), dest_ip, INET_ADDRSTRLEN);
-	printf("IP Header:\n");
-	printf(" - Version: %d\n", ip->version);
-	printf(" - Header Length: %d bytes\n", ip->ihl * 4);
-	printf(" - Protocol: %d\n", ip->protocol);
-	printf(" - Source IP: %s\n", source_ip);
-	printf(" - Destination IP: %s\n", dest_ip);
 
 
-	if(strncmp(dest_ip,d_ip,d_size)==0){
+	if(strncmp(dest_ip,iip,len)==0||strncmp(source_ip,iip,len)==0){
 		if(ip->protocol==IPPROTO_TCP){
 			printf("IP Header:\n");
 			printf(" - Version: %d\n", ip->version);
@@ -257,6 +251,7 @@ int main(int argc,char **argv) {
 	//	printf("MAC Frame:\n");
 	//	print_mac_frame_hex(buffer, packet_size);
 		if(assign_ip==1){
+			//fprintf(stderr,"assign_ip");
 			static_ip(buffer,packet_size,argv[2],strlen(argv[2]));
 			continue;
 		}
@@ -266,7 +261,6 @@ int main(int argc,char **argv) {
 		// ...
 
 		printf("\n");
-		memset(buffer,0,sizeof(buffer));
 	}
 
 	close(sockfd);
