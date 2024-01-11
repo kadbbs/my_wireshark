@@ -15,6 +15,8 @@
 
 #define MAX_PACKET_SIZE 65535
 
+int assign_ip =0;
+char all_tcp_data[102400];
 void print_mac_frame_hex(const unsigned char* buffer, int size) {
     for (int i = 0; i < size; i++) {
         printf("%02X ", buffer[i]);
@@ -37,7 +39,50 @@ void print_ascii(char *buf,int size){
 	}
 	printf("\n**********************");
 }
+void static_ip(const unsigned char* buffer, int size,char *d_ip,int d_size){
 
+
+	struct iphdr* ip = (struct iphdr*)(buffer + sizeof(struct ethhdr));
+	char source_ip[INET_ADDRSTRLEN];
+	char dest_ip[INET_ADDRSTRLEN];
+	inet_ntop(AF_INET, &(ip->saddr), source_ip, INET_ADDRSTRLEN);
+	inet_ntop(AF_INET, &(ip->daddr), dest_ip, INET_ADDRSTRLEN);
+	printf("IP Header:\n");
+	printf(" - Version: %d\n", ip->version);
+	printf(" - Header Length: %d bytes\n", ip->ihl * 4);
+	printf(" - Protocol: %d\n", ip->protocol);
+	printf(" - Source IP: %s\n", source_ip);
+	printf(" - Destination IP: %s\n", dest_ip);
+
+
+	if(strncmp(dest_ip,d_ip,d_size)==0){
+		if(ip->protocol==IPPROTO_TCP){
+			printf("IP Header:\n");
+			printf(" - Version: %d\n", ip->version);
+			printf(" - Header Length: %d bytes\n", ip->ihl * 4);
+			printf(" - Protocol: %d\n", ip->protocol);
+			printf(" - Source IP: %s\n", source_ip);
+			printf(" - Destination IP: %s\n", dest_ip);
+
+
+			// 解析TCP报文
+			struct tcphdr* tcp = (struct tcphdr*)(buffer + sizeof(struct ethhdr) + ip->ihl * 4);
+			printf("TCP Header:\n");
+			printf(" - Source Port: %d\n", ntohs(tcp->source));
+			printf(" - Destination Port: %d\n", ntohs(tcp->dest));
+			printf(" - Sequence Number: %u\n", ntohl(tcp->seq));
+			printf(" - Acknowledgment Number: %u\n", ntohl(tcp->ack_seq));
+			printf(" - Data Offset: %d bytes\n", tcp->doff * 4);
+			printf(" - Flags: 0x%02X\n", tcp->syn);
+			printf(" - Window Size: %d\n", ntohs(tcp->window));
+			printf(" - Checksum: 0x%04X\n", ntohs(tcp->check));
+
+
+		}
+	}else{}
+	
+
+}
 
 void parse_packet(const unsigned char* buffer, int size) {
 	// 解析MAC帧
@@ -59,6 +104,7 @@ void parse_packet(const unsigned char* buffer, int size) {
 	printf(" - Destination IP: %s\n", dest_ip);
 
 	// 解析协议
+	
 	switch (ip->protocol) {
 		case IPPROTO_UDP:{
 					 // 解析UDP报文
@@ -142,7 +188,7 @@ void print_mac_frame_hex(const unsigned char* buffer, int size) {
 int main(int argc,char **argv) {
 	int sockfd;
 	unsigned char buffer[MAX_PACKET_SIZE];
-
+	assign_ip=0;
 	char interface_name[16]="lo";
 	//struct sockaddr_ll sll;
 	struct ifreq if_lo;
@@ -150,6 +196,12 @@ int main(int argc,char **argv) {
 		memset(interface_name,0,sizeof(interface_name));
 		strncpy(interface_name,argv[1],strlen(argv[1]));	
 
+	}else if(argc==3){
+		memset(interface_name,0,sizeof(interface_name));
+		strncpy(interface_name,argv[1],strlen(argv[1]));	
+
+
+		assign_ip=1;
 	}else{
 		printf("argement number is failed!!\n");
 		exit(0);
@@ -172,7 +224,7 @@ int main(int argc,char **argv) {
 	memset(&sa, 0, sizeof(struct sockaddr_ll));
 	sa.sll_family = AF_PACKET;
 	sa.sll_protocol = htons(ETH_P_ALL);
-	sa.sll_ifindex = if_nametoindex("lo");
+	sa.sll_ifindex = if_nametoindex(interface_name);
 	if (bind(sockfd, (struct sockaddr*)&sa, sizeof(struct sockaddr_ll)) == -1) {
 		perror("Failed to bind raw socket to lo interface");
 		close(sockfd);
@@ -204,6 +256,10 @@ int main(int argc,char **argv) {
 	//	struct ethhdr* eth = (struct ethhdr*)buffer;
 	//	printf("MAC Frame:\n");
 	//	print_mac_frame_hex(buffer, packet_size);
+		if(assign_ip==1){
+			static_ip(buffer,packet_size,argv[2],strlen(argv[2]));
+			continue;
+		}
 		print_ascii(buffer, packet_size);
 		parse_packet(buffer, packet_size);
 		// 解析其他协议，如IP、ICMP、UDP、TCP等
